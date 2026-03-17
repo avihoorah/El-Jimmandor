@@ -25,24 +25,25 @@
             margin: 0;
             padding: 0;
             width: 100vw;
-            /* Removed overflow: hidden and fixed positioning from body to fix mobile cut-offs */
-            -webkit-font-smoothing: antialiased;
+            height: 100vh;
+            overflow: hidden;
         }
 
         #root {
-            min-height: 100dvh;
+            height: 100%;
             width: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
         .agave-grid {
-            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.12) 1.5px, transparent 0);
+            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1.5px, transparent 0);
             background-size: 40px 40px;
         }
 
         /* Hardware Accelerated 3D Flip */
         .flip-card { 
             perspective: 1500px;
-            -webkit-perspective: 1500px;
             width: 100%;
             height: 100%;
         }
@@ -52,7 +53,6 @@
             height: 100%;
             transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.1);
             transform-style: preserve-3d;
-            -webkit-transform-style: preserve-3d;
         }
         .flip-card.flipped .flip-card-inner { 
             transform: rotateY(180deg);
@@ -63,16 +63,13 @@
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
             border-radius: 2.5rem;
             display: flex;
             flex-direction: column;
             transform: translateZ(0);
-            -webkit-transform: translateZ(0);
         }
         .flip-card-back { 
             transform: rotateY(180deg) translateZ(1px);
-            -webkit-transform: rotateY(180deg) translateZ(1px);
         }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -99,7 +96,6 @@
             Info: () => <i data-lucide="info"></i>
         };
 
-        // Reverted to local assets for reliability
         const LOGO_ASSET = "a-1.svg";
         const BOTTLE_SILVER = "104417750-1-fr.webp";
         const BOTTLE_REPOSADO = "13680750-1-fr_1200x.webp";
@@ -125,7 +121,7 @@
             },
             storyteller: {
                 name: "THE EPIC STORYTELLER",
-                description: "A trip to the shops becomes an odyssey when you tell it. You turn a casual sit-down into a night to remember.",
+                description: "A trip to the shops becomes an odyssey when you tell it.Great stories deserve great sips.",
                 serve: "El Jimador Reposado Neat",
                 recipe: ["50ml el Jimador Reposado", "Serve in a neat glass", "Orange wedge side", "Sip slowly between sentences"],
                 bottle: BOTTLE_REPOSADO,
@@ -239,12 +235,10 @@
             const [isFlipped, setIsFlipped] = useState(false);
             const [showEducation, setShowEducation] = useState(false);
             const chatEndRef = useRef(null);
+            const scrollContainerRef = useRef(null);
 
-            // Hardened Scroll to Top Logic
             useLayoutEffect(() => {
-                window.scrollTo({ top: 0, behavior: 'instant' });
-                const root = document.getElementById('root');
-                if (root) root.scrollTo({ top: 0, behavior: 'instant' });
+                if (scrollContainerRef.current) scrollContainerRef.current.scrollTo(0, 0);
                 lucide.createIcons();
             }, [step, isFlipped, showEducation]);
 
@@ -269,15 +263,18 @@
 
             const showNextQuestion = (index) => {
                 if (index < QUESTIONS.length) addBotMessage(QUESTIONS[index].text);
-                else finalizeResults();
             };
 
-            const finalizeResults = async () => {
+            const finalizeResults = async (finalScores) => {
                 setStep('results');
-                const res = calculateResult();
                 setIsGenerating(true);
+                
+                // Calculate winner from provided scores
+                const winner = Object.keys(finalScores).reduce((a, b) => finalScores[a] > finalScores[b] ? a : b, 'host');
+                const res = VIBES[winner];
+
                 try {
-                    const legend = await callGemini(`Write a cheeky, legendary 1-sentence toast for someone whose table vibe is '${res.name}'. Use authentic South African slang and context. Mention serve: ${res.serve}. Make them feel like the soul of the crew.`);
+                    const legend = await callGemini(`Write a cheeky, legendary 1-sentence toast for someone whose table vibe is '${res.name}'. Use authentic South African slang. Mention serve: ${res.serve}. Make them feel like the soul of the crew.`);
                     setAiLegend(legend);
                 } catch (e) { 
                     setAiLegend("Eish, the vibe is so strong it broke the AI. You're still a legend."); 
@@ -287,14 +284,17 @@
             };
 
             const handleAnswer = (option) => {
+                const newScores = { ...scores, [option.type]: (scores[option.type] || 0) + 1 };
+                setScores(newScores);
                 setMessages(prev => [...prev, { sender: 'user', text: option.text }]);
-                setScores(prev => ({ ...prev, [option.type]: (prev[option.type] || 0) + 1 }));
+                
                 if (currentQuestion + 1 < QUESTIONS.length) {
-                    setCurrentQuestion(prev => prev + 1);
-                    setTimeout(() => showNextQuestion(currentQuestion + 1), 400);
+                    const nextQ = currentQuestion + 1;
+                    setCurrentQuestion(nextQ);
+                    setTimeout(() => showNextQuestion(nextQ), 400);
                 } else {
                     setIsTyping(true);
-                    setTimeout(() => finalizeResults(), 1000);
+                    setTimeout(() => finalizeResults(newScores), 1200);
                 }
             };
 
@@ -307,13 +307,12 @@
 
             if (step === 'splash') {
                 return (
-                    <div className="min-h-[100dvh] flex flex-col items-center justify-between p-8 pt-12 text-center relative overflow-hidden bg-[#00b4e5]">
+                    <div className="flex-1 flex flex-col items-center justify-between p-8 pt-12 text-center relative overflow-hidden bg-[#00b4e5]">
                         <AgavePattern />
                         <div className="relative z-10 w-full flex justify-center pt-4">
                             <Logo className="w-48 md:w-64" />
                         </div>
                         <div className="relative z-10 max-w-lg py-10">
-                            {/* Updated Hero Copy */}
                             <p className="text-white text-[10px] font-black uppercase tracking-[0.4em] mb-4">A TEQUILA FOR EVERY OCCASION</p>
                             <h1 className="text-white text-5xl md:text-7xl font-black leading-[0.85] uppercase tracking-tighter mb-8 italic">
                                 FIND OUT WHAT YOU BRING TO THE TABLE
@@ -334,14 +333,17 @@
             if (step === 'chat') {
                 const progress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
                 return (
-                    <div className="h-[100dvh] flex flex-col font-sans relative overflow-hidden bg-[#00b4e5]">
+                    <div className="flex-1 flex flex-col font-sans relative overflow-hidden bg-[#00b4e5]">
                         <AgavePattern />
-                        <div className="p-4 border-b border-white/10 bg-[#00b4e5] flex items-center justify-center sticky top-0 z-40 w-full shadow-md shrink-0 pt-6">
+                        {/* Fixed Header */}
+                        <div className="p-4 border-b border-white/10 bg-[#00b4e5] flex items-center justify-center sticky top-0 z-40 w-full shadow-md shrink-0">
                             <Logo className="h-8 w-auto" />
                         </div>
+                        {/* Progress */}
                         <div className="h-1 bg-white/10 w-full z-20 shrink-0">
                             <div className="h-full bg-white transition-all duration-500" style={{ width: `${progress}%` }}></div>
                         </div>
+                        {/* Scrollable Conversation */}
                         <div className="flex-1 overflow-y-auto p-4 space-y-6 z-10 relative chat-scroll pb-[250px]">
                             {messages.map((m, i) => (
                                 <div key={i} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'} animate-chat`}>
@@ -353,13 +355,16 @@
                             {isTyping && <div className="text-[10px] text-white font-black animate-pulse ml-2 uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full inline-block">Jimador is typing...</div>}
                             <div ref={chatEndRef} />
                         </div>
+                        {/* Interaction Overlay */}
                         {!isTyping && currentQuestion < QUESTIONS.length && (
                             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#00b4e5] via-[#00b4e5] to-transparent z-30 pb-10">
-                                {QUESTIONS[currentQuestion].options.map((opt, i) => (
-                                    <button key={i} onClick={() => handleAnswer(opt)} className="w-full bg-white text-[#00b4e5] mb-3 p-5 rounded-2xl text-left font-black uppercase tracking-tighter text-lg shadow-2xl active:scale-[0.98] transition-all border-2 border-transparent">
-                                        {opt.text}
-                                    </button>
-                                ))}
+                                <div className="flex flex-col gap-2">
+                                    {QUESTIONS[currentQuestion].options.map((opt, i) => (
+                                        <button key={i} onClick={() => handleAnswer(opt)} className="w-full bg-white text-[#00b4e5] p-5 rounded-2xl text-left font-black uppercase tracking-tighter text-lg shadow-2xl active:scale-[0.98] transition-all border-2 border-transparent">
+                                            {opt.text}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -367,7 +372,7 @@
             }
 
             return (
-                <div className="min-h-[100dvh] p-6 pt-12 flex flex-col items-center relative bg-[#00b4e5]">
+                <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-6 pt-12 flex flex-col items-center relative bg-[#00b4e5] scroll-smooth">
                     <AgavePattern />
                     
                     {showEducation && (
@@ -390,7 +395,7 @@
                                         <h2 className="text-4xl font-black mb-4 leading-[0.85] italic tracking-tighter text-white uppercase drop-shadow-2xl">{result.name}</h2>
                                         <div className="bg-white/20 backdrop-blur-xl p-5 rounded-[2rem] border border-white/40 mb-4 min-h-[100px] flex items-center justify-center shadow-inner overflow-hidden">
                                             {isGenerating ? <div className="flex flex-col items-center gap-2"><Icons.Loader2 /><span className="text-[10px] uppercase font-black text-white/70">Personalising Legend...</span></div> : <>
-                                                <p className="text-sm font-black text-white leading-tight italic uppercase px-2 drop-shadow">"{aiLegend || result.description}"</p>
+                                                <p className="text-base font-black text-white leading-tight italic uppercase px-2 drop-shadow">"{aiLegend || result.description}"</p>
                                             </>}
                                         </div>
                                         <div className="flex-1 flex items-center justify-center relative py-4">
