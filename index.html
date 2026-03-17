@@ -25,17 +25,13 @@
             margin: 0;
             padding: 0;
             width: 100vw;
-            height: 100vh;
-            overflow: hidden; 
-            position: fixed;
+            /* Removed overflow: hidden and fixed positioning from body to fix mobile cut-offs */
+            -webkit-font-smoothing: antialiased;
         }
 
         #root {
-            height: 100dvh;
+            min-height: 100dvh;
             width: 100%;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
         }
 
         .agave-grid {
@@ -103,10 +99,10 @@
             Info: () => <i data-lucide="info"></i>
         };
 
-        // Official URLs pulled from eljimador.com assets
-        const LOGO_OFFICIAL = "https://www.eljimador.com/wp-content/themes/el-jimador/assets/img/logo.svg";
-        const BOTTLE_SILVER_OFFICIAL = "https://www.eljimador.com/wp-content/uploads/2023/10/el-Jimador-Silver-Bottle.png";
-        const BOTTLE_REPOSADO_OFFICIAL = "https://www.eljimador.com/wp-content/uploads/2023/10/el-Jimador-Reposado-Bottle.png";
+        // Reverted to local assets for reliability
+        const LOGO_ASSET = "a-1.svg";
+        const BOTTLE_SILVER = "104417750-1-fr.webp";
+        const BOTTLE_REPOSADO = "13680750-1-fr_1200x.webp";
 
         const apiKey = ""; 
 
@@ -116,7 +112,7 @@
                 description: "Your house is the spot. You're already planning the playlist before anyone's confirmed.",
                 serve: "El Jimador Paloma",
                 recipe: ["50ml el Jimador Silver", "10ml Fresh Lime Juice", "Grapefruit Soda to top", "Pinch of Salt", "Grapefruit Wedge"],
-                bottle: BOTTLE_SILVER_OFFICIAL,
+                bottle: BOTTLE_SILVER,
                 tag: "100% AGAVE. 100% HOST."
             },
             connector: {
@@ -124,7 +120,7 @@
                 description: "You introduced half the crew. You're the reason the gathering happens.",
                 serve: "El Jimador Margarita Jug",
                 recipe: ["200ml el Jimador Silver", "100ml Triple Sec", "100ml Lime Juice", "Agave Nectar", "Loads of Ice"],
-                bottle: BOTTLE_SILVER_OFFICIAL,
+                bottle: BOTTLE_SILVER,
                 tag: "AUTHENTIC CONNECTION."
             },
             storyteller: {
@@ -132,7 +128,7 @@
                 description: "A trip to the shops becomes an odyssey when you tell it. You turn a casual sit-down into a night to remember.",
                 serve: "El Jimador Reposado Neat",
                 recipe: ["50ml el Jimador Reposado", "Serve in a neat glass", "Orange wedge side", "Sip slowly between sentences"],
-                bottle: BOTTLE_REPOSADO_OFFICIAL,
+                bottle: BOTTLE_REPOSADO,
                 tag: "SIP SLOWLY. TELL IT TRULY."
             },
             provider: {
@@ -140,7 +136,7 @@
                 description: "You never arrive empty-handed. Extra ice? Snacks? The El Jimador? You've already got it in the bag.",
                 serve: "El Jimador Blanco & Lime",
                 recipe: ["50ml el Jimador Silver", "Fresh Lime squeeze", "Sparkling Water", "Lots of ice"],
-                bottle: BOTTLE_SILVER_OFFICIAL,
+                bottle: BOTTLE_SILVER,
                 tag: "RELIABLY REAL. 100% AGAVE."
             },
             spark: {
@@ -148,7 +144,7 @@
                 description: "You walk in and the volume goes up. You're the soul of the celebration.",
                 serve: "El Jimador Spicy Margarita",
                 recipe: ["50ml el Jimador Silver", "25ml Lime Juice", "Agave Syrup", "Jalapeño Slices", "Chili salt rim"],
-                bottle: BOTTLE_SILVER_OFFICIAL,
+                bottle: BOTTLE_SILVER,
                 tag: "IGNITE THE MOMENT."
             },
             dj: {
@@ -156,7 +152,7 @@
                 description: "The speaker is your domain. You read the room better than anyone.",
                 serve: "El Jimador Paloma Twist",
                 recipe: ["50ml el Jimador Silver", "Grapefruit Soda", "Splash of Cranberry", "Rosemary sprig"],
-                bottle: BOTTLE_SILVER_OFFICIAL,
+                bottle: BOTTLE_SILVER,
                 tag: "YOUR SOUND. YOUR SIP."
             },
             keeper: {
@@ -164,7 +160,7 @@
                 description: "You're the emotional centre. You check in on everyone and make sure nobody's left out.",
                 serve: "El Jimador Old Fashioned",
                 recipe: ["50ml el Jimador Reposado", "2 dashes Bitters", "1 tsp Agave Nectar", "Orange peel twist"],
-                bottle: BOTTLE_REPOSADO_OFFICIAL,
+                bottle: BOTTLE_REPOSADO,
                 tag: "DEEP ROOTS. BELONGING."
             }
         };
@@ -204,8 +200,7 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            contents: [{ parts: [{ text: prompt }] }],
-                            tools: [{ "google_search": {} }] // Added search grounding for authentic SA context
+                            contents: [{ parts: [{ text: prompt }] }]
                         })
                     });
                     if (!response.ok) throw new Error('API Error');
@@ -226,7 +221,7 @@
                     <span className="text-white font-black italic tracking-tighter text-3xl leading-none">el Jimador</span>
                 </div>
             );
-            return <img src={LOGO_OFFICIAL} alt="El Jimador" className={className} onError={() => setError(true)} />;
+            return <img src={LOGO_ASSET} alt="El Jimador" className={className} onError={() => setError(true)} />;
         };
 
         const AgavePattern = () => (
@@ -245,9 +240,11 @@
             const [showEducation, setShowEducation] = useState(false);
             const chatEndRef = useRef(null);
 
+            // Hardened Scroll to Top Logic
             useLayoutEffect(() => {
+                window.scrollTo({ top: 0, behavior: 'instant' });
                 const root = document.getElementById('root');
-                if (root) root.scrollTo(0, 0);
+                if (root) root.scrollTo({ top: 0, behavior: 'instant' });
                 lucide.createIcons();
             }, [step, isFlipped, showEducation]);
 
@@ -280,7 +277,6 @@
                 const res = calculateResult();
                 setIsGenerating(true);
                 try {
-                    // Search grounding helps create a legend that references real South African nightlife or gather culture
                     const legend = await callGemini(`Write a cheeky, legendary 1-sentence toast for someone whose table vibe is '${res.name}'. Use authentic South African slang and context. Mention serve: ${res.serve}. Make them feel like the soul of the crew.`);
                     setAiLegend(legend);
                 } catch (e) { 
@@ -311,12 +307,17 @@
 
             if (step === 'splash') {
                 return (
-                    <div className="min-h-full flex flex-col items-center justify-between p-8 text-center relative overflow-hidden bg-[#00b4e5]">
+                    <div className="min-h-[100dvh] flex flex-col items-center justify-between p-8 pt-12 text-center relative overflow-hidden bg-[#00b4e5]">
                         <AgavePattern />
-                        <div className="relative z-10 w-full flex justify-center pt-4"><Logo className="w-48 md:w-64" /></div>
+                        <div className="relative z-10 w-full flex justify-center pt-4">
+                            <Logo className="w-48 md:w-64" />
+                        </div>
                         <div className="relative z-10 max-w-lg py-10">
-                            <p className="text-white text-[10px] font-black uppercase tracking-[0.4em] mb-4">The Everyperson Table</p>
-                            <h1 className="text-white text-5xl md:text-8xl font-black leading-[0.85] uppercase tracking-tighter mb-8 italic">A TEQUILA FOR EVERY OCCASION</h1>
+                            {/* Updated Hero Copy */}
+                            <p className="text-white text-[10px] font-black uppercase tracking-[0.4em] mb-4">A TEQUILA FOR EVERY OCCASION</p>
+                            <h1 className="text-white text-5xl md:text-7xl font-black leading-[0.85] uppercase tracking-tighter mb-8 italic">
+                                FIND OUT WHAT YOU BRING TO THE TABLE
+                            </h1>
                             <button onClick={startQuiz} className="group relative bg-white text-[#00b4e5] px-10 py-5 rounded-full font-black text-xl shadow-2xl active:scale-95 transition-transform flex items-center gap-3 mx-auto uppercase tracking-tighter">
                                 SIP FOR YOURSELF <Icons.ChevronRight />
                             </button>
@@ -333,15 +334,15 @@
             if (step === 'chat') {
                 const progress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
                 return (
-                    <div className="h-full flex flex-col font-sans relative overflow-hidden bg-[#00b4e5]">
+                    <div className="h-[100dvh] flex flex-col font-sans relative overflow-hidden bg-[#00b4e5]">
                         <AgavePattern />
-                        <div className="p-4 border-b border-white/10 bg-[#00b4e5] flex items-center justify-center sticky top-0 z-40 w-full shadow-md">
+                        <div className="p-4 border-b border-white/10 bg-[#00b4e5] flex items-center justify-center sticky top-0 z-40 w-full shadow-md shrink-0 pt-6">
                             <Logo className="h-8 w-auto" />
                         </div>
-                        <div className="h-1 bg-white/10 w-full z-20">
+                        <div className="h-1 bg-white/10 w-full z-20 shrink-0">
                             <div className="h-full bg-white transition-all duration-500" style={{ width: `${progress}%` }}></div>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-4 space-y-6 z-10 relative chat-scroll pb-96">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-6 z-10 relative chat-scroll pb-[250px]">
                             {messages.map((m, i) => (
                                 <div key={i} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'} animate-chat`}>
                                     <div className={`max-w-[85%] p-5 rounded-3xl ${m.sender === 'user' ? 'bg-[#007b9d] text-white rounded-tr-none shadow-xl' : 'bg-white text-[#00b4e5] rounded-tl-none shadow-md'}`}>
@@ -366,7 +367,7 @@
             }
 
             return (
-                <div className="min-h-full p-6 flex flex-col items-center relative bg-[#00b4e5]">
+                <div className="min-h-[100dvh] p-6 pt-12 flex flex-col items-center relative bg-[#00b4e5]">
                     <AgavePattern />
                     
                     {showEducation && (
@@ -383,7 +384,7 @@
                         <div className={`flip-card w-full aspect-[9/16] ${isFlipped ? 'flipped' : ''}`}>
                             <div className="flip-card-inner">
                                 <div className="flip-card-front bg-[#00b4e5] border-4 border-white p-8 items-center text-center">
-                                    <Logo className="w-24 mb-4" />
+                                    <Logo className="w-24 mb-4 shrink-0" />
                                     <div className="flex-1 flex flex-col justify-center w-full">
                                         <p className="text-[10px] font-black uppercase text-white tracking-[0.4em] mb-2 opacity-80">YOUR TABLE VIBE</p>
                                         <h2 className="text-4xl font-black mb-4 leading-[0.85] italic tracking-tighter text-white uppercase drop-shadow-2xl">{result.name}</h2>
@@ -396,7 +397,7 @@
                                             <img src={result.bottle} alt="Bottle" className="h-full max-h-[190px] object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)] transform transition-transform" />
                                         </div>
                                     </div>
-                                    <div className="mt-auto w-full pt-4 border-t border-white/40">
+                                    <div className="mt-auto w-full pt-4 border-t border-white/40 shrink-0">
                                         <p className="text-[9px] font-black text-white/80 mb-1 uppercase tracking-widest">SIGNATURE SERVE</p>
                                         <p className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none">{result.serve}</p>
                                         <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mt-6 italic">SIP FOR YOURSELF. 100% AGAVE.</p>
@@ -405,7 +406,7 @@
                                 </div>
 
                                 <div className="flip-card-back bg-white border-4 border-[#00b4e5] p-8 items-center text-center">
-                                    <Logo className="w-20 opacity-30 mb-4" />
+                                    <Logo className="w-20 opacity-30 mb-4 shrink-0" />
                                     <p className="text-[#00b4e5] text-[10px] font-black uppercase tracking-[0.4em] mb-1">OWN THE OCCASION</p>
                                     <h2 className="text-[#00b4e5] text-3xl font-black mb-6 italic tracking-tighter uppercase leading-none">{result.serve}</h2>
                                     <div className="flex-1 flex flex-col justify-center space-y-4">
@@ -416,10 +417,10 @@
                                             </div>
                                         ))}
                                     </div>
-                                    <div className="mt-6 bg-[#00b4e5]/10 p-4 rounded-[1.5rem] border border-[#00b4e5]/20">
+                                    <div className="mt-6 bg-[#00b4e5]/10 p-4 rounded-[1.5rem] border border-[#00b4e5]/20 shrink-0">
                                         <p className="text-[#00b4e5] text-xs font-black italic uppercase tracking-tighter">"Everyone brings something to the table."</p>
                                     </div>
-                                    <p className="mt-6 text-[7px] text-[#00b4e5]/60 font-bold uppercase">Enjoy Responsibly. Not for persons under 18.</p>
+                                    <p className="mt-6 text-[7px] text-[#00b4e5]/60 font-bold uppercase shrink-0">Enjoy Responsibly. Not for persons under 18.</p>
                                 </div>
                             </div>
                         </div>
