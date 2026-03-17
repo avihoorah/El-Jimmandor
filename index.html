@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>el Jimador | Sip For Yourself</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React and Babel for the UI logic -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .agave-grid {
+            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.08) 1px, transparent 0);
+            background-size: 40px 40px;
+        }
+        .flip-card { perspective: 1000px; }
+        .flip-card-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .flip-card-back { transform: rotateY(180deg); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        
+        // Icons from Lucide
+        const Share2 = () => <i data-lucide="share-2"></i>;
+        const RefreshCcw = () => <i data-lucide="refresh-ccw"></i>;
+        const ChevronRight = () => <i data-lucide="chevron-right"></i>;
+        const Volume2 = () => <i data-lucide="volume-2"></i>;
+        const VolumeX = () => <i data-lucide="volume-x"></i>;
+        const Sparkles = () => <i data-lucide="sparkles"></i>;
+        const Loader2 = () => <i data-lucide="loader-2" className="animate-spin"></i>;
+        const BookOpen = () => <i data-lucide="book-open"></i>;
+        const Info = () => <i data-lucide="info"></i>;
+
+        // Assets
+        const LOGO_ASSET = "a-1.svg";
+        const BOTTLE_SILVER = "104417750-1-fr.webp";
+        const BOTTLE_REPOSADO = "13680750-1-fr_1200x.webp";
+
+        const apiKey = ""; 
+
+        const VIBES = {
+            host: {
+                name: "THE LEGENDARY HOST",
+                description: "Your house is the spot. You're already planning the playlist before anyone's confirmed.",
+                serve: "El Jimador Paloma",
+                recipe: ["50ml el Jimador Silver", "10ml Fresh Lime Juice", "Grapefruit Soda to top", "Pinch of salt", "Garnish with Grapefruit wedge"],
+                bottle: BOTTLE_SILVER,
+                tag: "100% AGAVE. 100% HOST.",
+                imagePrompt: "Vibrant South African backyard social, golden hour, premium tequila lifestyle photography"
+            },
+            connector: {
+                name: "THE CREW CONNECTOR",
+                description: "You're the glue. You introduced half the people here to each other.",
+                serve: "El Jimador Margarita Jug",
+                recipe: ["200ml el Jimador Silver", "100ml Triple Sec", "100ml Lime Juice", "50ml Agave Nectar", "Ice for the whole crew"],
+                bottle: BOTTLE_SILVER,
+                tag: "AUTHENTIC CONNECTION.",
+                imagePrompt: "Diverse South African friends clinking glasses, outdoor sunset celebration"
+            },
+            storyteller: {
+                name: "THE EPIC STORYTELLER",
+                description: "A trip to the shops becomes an odyssey when you tell it. You turn a casual sit-down into a night to remember.",
+                serve: "El Jimador Reposado Neat",
+                recipe: ["50ml el Jimador Reposado", "Serve in a neat glass", "Side of orange wedge with cinnamon", "Sip slowly between sentences"],
+                bottle: BOTTLE_REPOSADO,
+                tag: "SIP SLOWLY. TELL IT TRULY.",
+                imagePrompt: "Sophisticated lounge, warm amber lighting, hand holding neat tequila glass"
+            },
+            provider: {
+                name: "THE ULTIMATE PROVIDER",
+                description: "You never arrive empty-handed. Extra ice? Snacks? The El Jimador? You've already got it in the bag.",
+                serve: "El Jimador Blanco & Lime",
+                recipe: ["50ml el Jimador Silver", "Fresh Lime wedge squeezed", "Sparkling Water", "Lots of ice", "Reliable and refreshing"],
+                bottle: BOTTLE_SILVER,
+                tag: "RELIABLY REAL. 100% AGAVE.",
+                imagePrompt: "Cooler box with ice, limes and premium tequila bottle, crisp daylight"
+            },
+            spark: {
+                name: "THE ENERGY SPARK",
+                description: "You walk in and the volume goes up. You didn't plan to stay late, but now you're the soul of the celebration.",
+                serve: "El Jimador Spicy Margarita",
+                recipe: ["50ml el Jimador Silver", "25ml Lime Juice", "15ml Agave Syrup", "2 Slices of Jalapeño", "Chili salt rim"],
+                bottle: BOTTLE_SILVER,
+                tag: "IGNITE THE MOMENT.",
+                imagePrompt: "Neon nightlife energy, vibrant spicy cocktail, electric atmosphere"
+            },
+            dj: {
+                name: "THE VIBE CURATOR",
+                description: "The speaker is your domain. You read the room better than anyone.",
+                serve: "El Jimador Paloma with a Twist",
+                recipe: ["50ml el Jimador Silver", "Grapefruit Soda", "Splash of Cranberry juice", "Rosemary sprig garnish", "Serve with rhythm"],
+                bottle: BOTTLE_SILVER,
+                tag: "YOUR SOUND. YOUR SIP.",
+                imagePrompt: "Turntables and stylish cocktail at garden party, bokeh lifestyle"
+            },
+            keeper: {
+                name: "THE HEART KEEPER",
+                description: "You're the emotional centre. You check in on everyone and make sure nobody's left out.",
+                serve: "El Jimador Añejo Old Fashioned",
+                recipe: ["50ml el Jimador Reposado", "2 dashes Bitters", "1 tsp Agave Nectar", "Orange peel twist", "One large ice cube"],
+                bottle: BOTTLE_REPOSADO,
+                tag: "DEEP ROOTS. TRUE BELONGING.",
+                imagePrompt: "Heartfelt dinner with friends, candle light, warm and inviting atmosphere"
+            }
+        };
+
+        const QUESTIONS = [
+            { id: 1, text: "Sharp! It's Saturday 4pm. Where are you? 📍", options: [
+                { text: "AT HOME PREPPING THE VIBES", type: "host" },
+                { text: "ALREADY THERE, FIRST ROUND ON ME", type: "spark" },
+                { text: "ON MY WAY, JUST SENT THE PIN", type: "connector" },
+                { text: "STILL DECIDING WHICH GROUP TO JOIN", type: "storyteller" }
+            ]},
+            { id: 2, text: "The group chat pings: 'Come through.' You... 📱", options: [
+                { text: "ARRIVE WHEN THE VIBE PEAKS", type: "spark" },
+                { text: "BRING THE ICE AND THE JIMADOR", type: "provider" },
+                { text: "ASK 'WHO'S ALL THERE?' FIRST", type: "keeper" },
+                { text: "I'M THE ONE WHO SENT THE INVITE", type: "connector" }
+            ]},
+            { id: 3, text: "Eish, the playlist is a bit flat. You... 🎵", options: [
+                { text: "TAKE OVER THE SPEAKER—GOT THE HEAT", type: "dj" },
+                { text: "REQUEST THAT ONE TRACK FOR THE CREW", type: "host" },
+                { text: "DON'T NOTICE, I'M MID-STORY", type: "storyteller" },
+                { text: "JUST HAPPY TO BE HERE WITH THE PEOPLE", type: "keeper" }
+            ]},
+            { id: 4, text: "Someone brought the 'cheap' stuff. You... 🥃", options: [
+                { text: "BRING OUT THE 100% AGAVE BOTTLE", type: "provider" },
+                { text: "MAKE A CHEEKY JOKE TO FIX THE VIBE", type: "storyteller" },
+                { text: "OFFER TO MAKE A ROUND OF PALOMAS", type: "host" },
+                { text: "IT'S ABOUT THE COMPANY, NOT THE SIP", type: "keeper" }
+            ]}
+        ];
+
+        const Logo = ({ className = "w-48" }) => {
+            const [error, setError] = useState(false);
+            if (error) return (
+                <div className={`flex flex-col items-center justify-center ${className}`}>
+                    <span className="text-white font-black italic tracking-tighter text-4xl leading-none">el Jimador</span>
+                    <span className="text-white text-[8px] font-black uppercase tracking-[0.4em] mt-1">Tequila</span>
+                </div>
+            );
+            return <img src={LOGO_ASSET} alt="El Jimador" className={className} onError={() => setError(true)} />;
+        };
+
+        const AgavePattern = () => (
+            <div className="absolute inset-0 z-0 opacity-[0.08] pointer-events-none agave-grid"></div>
+        );
+
+        function App() {
+            const [step, setStep] = useState('splash');
+            const [currentQuestion, setCurrentQuestion] = useState(0);
+            const [scores, setScores] = useState({});
+            const [messages, setMessages] = useState([]);
+            const [isTyping, setIsTyping] = useState(false);
+            const [aiLegend, setAiLegend] = useState(null);
+            const [aiImage, setAiImage] = useState(null);
+            const [isGenerating, setIsGenerating] = useState(false);
+            const [isFlipped, setIsFlipped] = useState(false);
+            const [showEducation, setShowEducation] = useState(false);
+            const chatEndRef = useRef(null);
+
+            useEffect(() => { lucide.createIcons(); }, [messages, step, isTyping, aiLegend, isFlipped, showEducation]);
+            useEffect(() => { if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: 'smooth' }); }, [messages, isTyping]);
+
+            const startQuiz = () => {
+                setStep('chat');
+                addBotMessage("Lekker! Everyone brings something to the table. Let's find your vibe.");
+                setTimeout(() => showNextQuestion(0), 1000);
+            };
+
+            const addBotMessage = (text) => {
+                setIsTyping(true);
+                setTimeout(() => {
+                    setMessages(prev => [...prev, { sender: 'bot', text }]);
+                    setIsTyping(false);
+                }, 1200);
+            };
+
+            const showNextQuestion = (index) => {
+                if (index < QUESTIONS.length) addBotMessage(QUESTIONS[index].text);
+                else finalizeResults();
+            };
+
+            const finalizeResults = async () => {
+                setStep('results');
+                const res = calculateResult();
+                setIsGenerating(true);
+                try {
+                    const legendPromise = fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: `Write a short 1-sentence legendary toast for '${res.name}'. Use authentic South African slang like 'sharp', 'lekker', or 'moerse'. Mention their serve: ${res.serve}.` }] }] })
+                    }).then(r => r.json());
+
+                    const imagePromise = fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ instances: { prompt: res.imagePrompt }, parameters: { sampleCount: 1 } })
+                    }).then(r => r.json());
+
+                    const [lData, iData] = await Promise.all([legendPromise, imagePromise]);
+                    setAiLegend(lData.candidates?.[0]?.content?.parts?.[0]?.text);
+                    if (iData.predictions?.[0]?.bytesBase64Encoded) setAiImage(`data:image/png;base64,${iData.predictions[0].bytesBase64Encoded}`);
+                } catch (e) { console.error(e); } finally { setIsGenerating(false); }
+            };
+
+            const handleAnswer = (option) => {
+                setMessages(prev => [...prev, { sender: 'user', text: option.text }]);
+                setScores(prev => ({ ...prev, [option.type]: (prev[option.type] || 0) + 1 }));
+                if (currentQuestion + 1 < QUESTIONS.length) {
+                    setCurrentQuestion(prev => prev + 1);
+                    setTimeout(() => showNextQuestion(currentQuestion + 1), 500);
+                } else {
+                    setIsTyping(true);
+                    setTimeout(() => finalizeResults(), 1500);
+                }
+            };
+
+            const calculateResult = () => {
+                const winner = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b, 'host');
+                return VIBES[winner];
+            };
+
+            const result = step === 'results' ? calculateResult() : null;
+
+            if (step === 'splash') {
+                return (
+                    <div className="min-h-screen bg-[#00b4e5] flex flex-col items-center justify-between p-8 text-center relative overflow-hidden">
+                        <AgavePattern />
+                        <div className="relative z-10 w-full flex justify-center pt-4"><Logo className="w-48 md:w-64" /></div>
+                        <div className="relative z-10 max-w-lg">
+                            <p className="text-white text-xs font-black uppercase tracking-[0.4em] mb-4">The Everyperson Table</p>
+                            <h1 className="text-white text-6xl md:text-8xl font-black leading-[0.9] uppercase tracking-tighter mb-8 italic">A TEQUILA FOR EVERY OCCASION</h1>
+                            <p className="text-white/90 text-lg md:text-xl font-medium leading-relaxed mb-10 px-4">Find your table vibe and own the long-drink occasion.</p>
+                            <button onClick={startQuiz} className="group relative bg-white text-[#00b4e5] px-12 py-5 rounded-full font-black text-xl hover:bg-amber-400 transition-all flex items-center gap-3 mx-auto shadow-2xl active:scale-95">
+                                SIP FOR YOURSELF <ChevronRight />
+                            </button>
+                        </div>
+                        <div className="relative z-10 w-full border-t border-white/20 pt-6">
+                            <button onClick={() => setShowEducation(true)} className="text-white/70 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 mx-auto">
+                                <Info size={14} /> WHY 100% BLUE AGAVE MATTERS
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (step === 'chat') {
+                const progress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
+                return (
+                    <div className="min-h-screen bg-[#00b4e5] flex flex-col font-sans max-w-md mx-auto relative overflow-hidden">
+                        <AgavePattern />
+                        <div className="p-4 border-b border-white/10 bg-[#00b4e5] flex items-center justify-between sticky top-0 z-30"><Logo className="h-8 w-auto" /></div>
+                        <div className="h-1 bg-white/10 w-full overflow-hidden z-20"><div className="h-full bg-white transition-all duration-500" style={{ width: `${progress}%` }}></div></div>
+                        <div className="flex-1 overflow-y-auto p-4 space-y-6 z-10 relative">
+                            {messages.map((m, i) => (
+                                <div key={i} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                    <div className={`max-w-[85%] p-5 rounded-3xl ${m.sender === 'user' ? 'bg-[#007b9d] text-white rounded-tr-none shadow-xl' : 'bg-white text-[#00b4e5] rounded-tl-none shadow-md'}`}>
+                                        <p className="text-sm font-bold uppercase leading-tight tracking-wide">{m.text}</p>
+                                    </div>
+                                </div>
+                            ))}
+                            {isTyping && <div className="text-[10px] text-white font-black animate-pulse ml-2 uppercase tracking-widest">Generating Vibe...</div>}
+                            <div className="h-80" /><div ref={chatEndRef} />
+                        </div>
+                        {!isTyping && currentQuestion < QUESTIONS.length && (
+                            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#00b4e5] via-[#00b4e5] to-transparent z-20 pb-8">
+                                {QUESTIONS[currentQuestion].options.map((opt, i) => (
+                                    <button key={i} onClick={() => handleAnswer(opt)} className="w-full bg-white text-[#00b4e5] mb-3 p-5 rounded-2xl text-left hover:bg-amber-400 hover:text-black transition-all font-black uppercase tracking-tighter text-lg shadow-2xl active:scale-95 border-2 border-transparent">{opt.text}</button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen bg-[#00b4e5] p-6 flex flex-col items-center overflow-y-auto relative">
+                    <AgavePattern />
+                    
+                    {/* Education Modal */}
+                    {showEducation && (
+                        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md p-6 flex items-center justify-center">
+                            <div className="bg-white rounded-[2rem] p-8 max-w-sm w-full text-center relative shadow-2xl">
+                                <button onClick={() => setShowEducation(false)} className="absolute top-6 right-6 text-gray-400"><RefreshCcw size={20} /></button>
+                                <h3 className="text-[#00b4e5] font-black text-2xl uppercase italic tracking-tighter mb-4">THE 100% DIFFERENCE</h3>
+                                <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                                    Unlike 'mixto' tequilas filled with sugars and additives, <b>el Jimador</b> is made from 100% Blue Weber Agave. It's real, authentic, and naturally smooth. Because you deserve the good stuff.
+                                </p>
+                                <div className="bg-[#00b4e5]/10 p-4 rounded-xl mb-6">
+                                    <p className="text-[#00b4e5] font-black text-xs uppercase tracking-widest">NO ADDED SUGAR. JUST AGAVE.</p>
+                                </div>
+                                <button onClick={() => setShowEducation(false)} className="w-full bg-[#00b4e5] text-white font-black py-4 rounded-full uppercase tracking-tighter shadow-lg">SHARP, GOT IT.</button>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="w-full max-w-md space-y-6 pb-12 relative z-10">
+                        
+                        {/* Flip Card Container */}
+                        <div className={`flip-card w-full aspect-[9/16] ${isFlipped ? 'flipped' : ''}`}>
+                            <div className="flip-card-inner w-full h-full relative">
+                                
+                                {/* FRONT: Result Card */}
+                                <div className="flip-card-front absolute inset-0 bg-[#00b4e5] rounded-[3rem] shadow-2xl border-4 border-white flex flex-col overflow-hidden">
+                                    {aiImage && <img src={aiImage} className="absolute inset-0 w-full h-full object-cover opacity-50 z-0" alt="Vibe" />}
+                                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#00b4e5]/40 to-[#00b4e5] z-0"></div>
+                                    <div className="relative z-10 flex flex-col h-full items-center text-center p-8">
+                                        <Logo className="w-32 mb-6" />
+                                        <div className="flex-1 flex flex-col justify-center w-full">
+                                            <p className="text-[10px] font-black uppercase text-white tracking-[0.4em] mb-2 opacity-80">YOUR TABLE VIBE</p>
+                                            <h2 className="text-5xl font-black mb-6 leading-[0.85] italic tracking-tighter text-white uppercase drop-shadow-2xl">{result.name}</h2>
+                                            <div className="bg-white/20 backdrop-blur-xl p-5 rounded-[2rem] border border-white/40 mb-6 min-h-[100px] flex items-center justify-center">
+                                                {isGenerating ? <div className="flex flex-col items-center gap-3 py-4"><Loader2 /><span className="text-[10px] uppercase font-black tracking-widest text-white/70">Personalising Legend...</span></div> : <>
+                                                    <p className="text-base font-black text-white leading-tight italic uppercase">"{aiLegend || result.description}"</p>
+                                                </>}
+                                            </div>
+                                            <div className="flex-1 flex items-center justify-center relative py-4">
+                                                <img src={result.bottle} alt="Bottle" className="h-full max-h-[200px] object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.7)]" />
+                                            </div>
+                                        </div>
+                                        <div className="mt-auto w-full pt-4 border-t border-white/40">
+                                            <p className="text-[9px] font-black text-white/80 mb-1 uppercase tracking-[0.2em]">SIGNATURE SERVE</p>
+                                            <p className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none">{result.serve}</p>
+                                            <div className="mt-6 flex flex-col gap-1">
+                                                <p className="text-3xl font-black italic text-white drop-shadow-lg tracking-tighter uppercase leading-none">SIP FOR YOURSELF.</p>
+                                                <p className="text-[8px] font-black text-white/50 uppercase tracking-[0.3em]">{result.tag}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* BACK: Recipe Card */}
+                                <div className="flip-card-back absolute inset-0 bg-white rounded-[3rem] shadow-2xl border-4 border-[#00b4e5] flex flex-col overflow-hidden p-8 text-center">
+                                    <Logo className="w-24 mx-auto mb-6 opacity-30" />
+                                    <p className="text-[#00b4e5] text-[10px] font-black uppercase tracking-[0.4em] mb-2">OWN THE OCCASION</p>
+                                    <h2 className="text-[#00b4e5] text-4xl font-black mb-6 leading-none italic tracking-tighter uppercase">{result.serve}</h2>
+                                    
+                                    <div className="flex-1 flex flex-col items-center justify-center">
+                                        <div className="w-full space-y-3">
+                                            {result.recipe.map((step, idx) => (
+                                                <div key={idx} className="flex items-center gap-3 text-left">
+                                                    <div className="w-5 h-5 rounded-full bg-[#00b4e5] text-white text-[10px] font-black flex items-center justify-center flex-shrink-0">{idx + 1}</div>
+                                                    <p className="text-gray-600 text-xs font-bold uppercase">{step}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="mt-auto bg-[#00b4e5]/10 p-6 rounded-[2rem] border border-[#00b4e5]/20">
+                                        <p className="text-[#00b4e5] text-sm font-black italic">"Perfect for outdoor social moments or a casual get-together at home."</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="space-y-4">
+                            <button onClick={() => setIsFlipped(!isFlipped)} className="w-full flex items-center justify-center gap-3 bg-amber-400 text-black p-5 rounded-2xl font-black shadow-xl hover:bg-white transition-all uppercase tracking-tighter text-lg active:scale-95">
+                                <BookOpen size={20} /> {isFlipped ? 'VIEW MY VIBE' : 'VIEW RECIPE'}
+                            </button>
+                            <button className="w-full flex items-center justify-center gap-3 bg-white text-[#00b4e5] p-5 rounded-2xl font-black shadow-xl hover:bg-amber-400 hover:text-black transition-all uppercase tracking-tighter text-lg active:scale-95">
+                                <Share2 size={20} /> SHARE MY VIBE
+                            </button>
+                            <button onClick={() => window.location.reload()} className="w-full text-white/60 text-[10px] font-black tracking-[0.3em] uppercase flex items-center justify-center gap-2 py-4">
+                                <RefreshCcw size={12} /> RESTART THE VIBE
+                            </button>
+                        </div>
+
+                        <p className="text-center text-[8px] text-white/50 font-bold uppercase tracking-widest pt-4">
+                            NOT FOR PERSONS UNDER THE AGE OF 18. ENJOY RESPONSIBLY.
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
