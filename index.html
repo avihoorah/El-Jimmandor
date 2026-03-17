@@ -75,9 +75,10 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-chat { animation: fadeIn 0.4s ease-out forwards; }
         
-        /* Custom scrollbar */
-        .chat-scroll::-webkit-scrollbar { width: 4px; }
-        .chat-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        .chat-scroll {
+            scrollbar-width: none;
+        }
+        .chat-scroll::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
@@ -139,7 +140,7 @@
                 name: "THE ENERGY SPARK",
                 description: "You walk in and the volume goes up. You're the soul of the celebration.",
                 serve: "El Jimador Spicy Margarita",
-                recipe: ["50ml el Jimador Silver", "25ml Lime Juice", "Agave Syrup", "Jalapeño Slices", "Chili salt rim"],
+                recipe: ["50ml el Jimador Silver", "25ml Lime Juice", "15ml Agave Syrup", "2 Jalapeño Slices", "Chili salt rim"],
                 bottle: BOTTLE_SILVER,
                 tag: "IGNITE THE MOMENT."
             },
@@ -243,7 +244,9 @@
             }, [step, isFlipped, showEducation]);
 
             useEffect(() => {
-                if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+                if (chatEndRef.current) {
+                    chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+                }
                 lucide.createIcons();
             }, [messages, isTyping]);
 
@@ -269,14 +272,14 @@
                 setStep('results');
                 setIsGenerating(true);
                 
-                // Calculate winner from provided scores
                 const winner = Object.keys(finalScores).reduce((a, b) => finalScores[a] > finalScores[b] ? a : b, 'host');
                 const res = VIBES[winner];
 
                 try {
-                    const legend = await callGemini(`Write a cheeky, legendary 1-sentence toast for someone whose table vibe is '${res.name}'. Use authentic South African slang. Mention serve: ${res.serve}. Make them feel like the soul of the crew.`);
+                    const legend = await callGemini(`Write a cheeky, legendary 1-sentence toast for someone whose table vibe is '${res.name}'. Use authentic South African slang like 'lekker', 'sharp' or 'moerse'. Mention serve: ${res.serve}. Make them feel like the soul of the crew.`);
                     setAiLegend(legend);
                 } catch (e) { 
+                    console.error(e);
                     setAiLegend("Eish, the vibe is so strong it broke the AI. You're still a legend."); 
                 } finally { 
                     setIsGenerating(false); 
@@ -335,16 +338,18 @@
                 return (
                     <div className="flex-1 flex flex-col font-sans relative overflow-hidden bg-[#00b4e5]">
                         <AgavePattern />
-                        {/* Fixed Header */}
-                        <div className="p-4 border-b border-white/10 bg-[#00b4e5] flex items-center justify-center sticky top-0 z-40 w-full shadow-md shrink-0">
-                            <Logo className="h-8 w-auto" />
+                        {/* Header & Progress */}
+                        <div className="bg-[#00b4e5] z-40 w-full shadow-md shrink-0">
+                            <div className="p-4 flex items-center justify-center border-b border-white/10">
+                                <Logo className="h-8 w-auto" />
+                            </div>
+                            <div className="h-1 bg-white/10 w-full overflow-hidden">
+                                <div className="h-full bg-white transition-all duration-500" style={{ width: `${progress}%` }}></div>
+                            </div>
                         </div>
-                        {/* Progress */}
-                        <div className="h-1 bg-white/10 w-full z-20 shrink-0">
-                            <div className="h-full bg-white transition-all duration-500" style={{ width: `${progress}%` }}></div>
-                        </div>
-                        {/* Scrollable Conversation */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-6 z-10 relative chat-scroll pb-[250px]">
+                        
+                        {/* Conversation Area (Takes available space) */}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-6 z-10 relative chat-scroll">
                             {messages.map((m, i) => (
                                 <div key={i} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'} animate-chat`}>
                                     <div className={`max-w-[85%] p-5 rounded-3xl ${m.sender === 'user' ? 'bg-[#007b9d] text-white rounded-tr-none shadow-xl' : 'bg-white text-[#00b4e5] rounded-tl-none shadow-md'}`}>
@@ -352,21 +357,35 @@
                                     </div>
                                 </div>
                             ))}
-                            {isTyping && <div className="text-[10px] text-white font-black animate-pulse ml-2 uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full inline-block">Jimador is typing...</div>}
-                            <div ref={chatEndRef} />
+                            {isTyping && (
+                                <div className="flex justify-start">
+                                    <div className="text-[10px] text-white font-black animate-pulse uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full inline-block">
+                                        Jimador is typing...
+                                    </div>
+                                </div>
+                            )}
+                            <div ref={chatEndRef} className="h-4" />
                         </div>
-                        {/* Interaction Overlay */}
-                        {!isTyping && currentQuestion < QUESTIONS.length && (
-                            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#00b4e5] via-[#00b4e5] to-transparent z-30 pb-10">
-                                <div className="flex flex-col gap-2">
+
+                        {/* Interaction Area (Always at bottom) */}
+                        <div className="bg-gradient-to-t from-[#00b4e5] via-[#00b4e5] to-transparent z-30 pt-10 pb-10 px-4 shrink-0">
+                            {!isTyping && currentQuestion < QUESTIONS.length && (
+                                <div className="flex flex-col gap-2 max-w-md mx-auto">
                                     {QUESTIONS[currentQuestion].options.map((opt, i) => (
                                         <button key={i} onClick={() => handleAnswer(opt)} className="w-full bg-white text-[#00b4e5] p-5 rounded-2xl text-left font-black uppercase tracking-tighter text-lg shadow-2xl active:scale-[0.98] transition-all border-2 border-transparent">
                                             {opt.text}
                                         </button>
                                     ))}
                                 </div>
-                            </div>
-                        )}
+                            )}
+                            {isTyping && (
+                                <div className="h-[200px] flex items-center justify-center">
+                                    <div className="bg-white/10 p-6 rounded-3xl backdrop-blur-sm border border-white/20">
+                                        <Icons.Loader2 />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 );
             }
@@ -394,7 +413,7 @@
                                         <p className="text-[10px] font-black uppercase text-white tracking-[0.4em] mb-2 opacity-80">YOUR TABLE VIBE</p>
                                         <h2 className="text-4xl font-black mb-4 leading-[0.85] italic tracking-tighter text-white uppercase drop-shadow-2xl">{result.name}</h2>
                                         <div className="bg-white/20 backdrop-blur-xl p-5 rounded-[2rem] border border-white/40 mb-4 min-h-[100px] flex items-center justify-center shadow-inner overflow-hidden">
-                                            {isGenerating ? <div className="flex flex-col items-center gap-2"><Icons.Loader2 /><span className="text-[10px] uppercase font-black text-white/70">Personalising Legend...</span></div> : <>
+                                            {isGenerating ? <div className="flex flex-col items-center gap-2 px-4 py-4 text-center"><Icons.Loader2 /><span className="text-[10px] uppercase font-black text-white/70">Personalising Legend...</span></div> : <>
                                                 <p className="text-base font-black text-white leading-tight italic uppercase px-2 drop-shadow">"{aiLegend || result.description}"</p>
                                             </>}
                                         </div>
