@@ -13,13 +13,13 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         
-        :root { --brand-blue: #00b4e5; }
+        :root { --brand-blue: #00b3c2; }
         
         * { -webkit-tap-highlight-color: transparent; }
 
         body { 
             font-family: 'Inter', sans-serif; 
-            background-color: #008ba8; /* Slightly darker background for desktop contrast */
+            background-color: #008fa0; /* Slightly darker background for desktop contrast */
             margin: 0;
             padding: 0;
             width: 100vw;
@@ -303,7 +303,7 @@
                             </h1>
                             <p className="text-white/90 text-sm font-black uppercase tracking-[0.2em] mb-8">A TEQUILA FOR EVERY OCCASION</p>
                             
-                            <button onClick={startQuiz} className="group relative bg-white text-[#00b4e5] px-10 py-5 rounded-full font-black text-xl shadow-2xl active:scale-95 transition-transform flex items-center gap-3 mx-auto uppercase tracking-tighter">
+                            <button onClick={startQuiz} className="group relative bg-white text-[#00b3c2] px-10 py-5 rounded-full font-black text-xl shadow-2xl active:scale-95 transition-transform flex items-center gap-3 mx-auto uppercase tracking-tighter">
                                 SIP FOR YOURSELF <Icons.ChevronRight size={24} />
                             </button>
                         </div>
@@ -314,11 +314,11 @@
                         </div>
 
                         {showEducation && (
-                            <div className="absolute inset-0 z-50 bg-[#00b4e5]/90 backdrop-blur-md p-6 flex items-center justify-center">
+                            <div className="absolute inset-0 z-50 bg-[#00b3c2]/90 backdrop-blur-md p-6 flex items-center justify-center">
                                 <div className="bg-white rounded-[2rem] p-8 w-full text-center relative shadow-2xl">
-                                    <h3 className="text-[#00b4e5] font-black text-2xl uppercase italic mb-4">100% AGAVE</h3>
+                                    <h3 className="text-[#00b3c2] font-black text-2xl uppercase italic mb-4">100% AGAVE</h3>
                                     <p className="text-gray-600 text-xs font-bold uppercase leading-relaxed mb-6">No fillers. No shortcuts. Just authentic vibes.</p>
-                                    <button onClick={() => setShowEducation(false)} className="w-full bg-[#00b4e5] text-white font-black py-4 rounded-full uppercase">GOT IT.</button>
+                                    <button onClick={() => setShowEducation(false)} className="w-full bg-[#00b3c2] text-white font-black py-4 rounded-full uppercase">GOT IT.</button>
                                 </div>
                             </div>
                         )}
@@ -331,7 +331,7 @@
                 return (
                     <div className="app-wrapper flex flex-col font-sans relative">
                         <AgavePattern />
-                        <div className="bg-[#00b4e5] z-40 w-full shrink-0 border-b border-white/10 p-4 flex flex-col items-center">
+                        <div className="bg-[#00b3c2] z-40 w-full shrink-0 border-b border-white/10 p-4 flex flex-col items-center">
                             <span className="text-white text-[10px] font-black uppercase tracking-[0.4em] opacity-80 mb-1">Vibe Finder</span>
                             <div className="h-1 bg-white/20 w-full max-w-[150px] rounded-full overflow-hidden">
                                 <div className="h-full bg-white transition-all duration-500" style={{ width: `${progress}%` }}></div>
@@ -342,7 +342,7 @@
                             <div className="w-full flex flex-col space-y-6">
                                 {messages.map((m, i) => (
                                     <div key={i} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'} animate-chat`}>
-                                        <div className={`max-w-[85%] p-4 rounded-2xl ${m.sender === 'user' ? 'bg-white text-[#00b4e5] rounded-tr-none shadow-xl' : 'bg-white/15 text-white border border-white/20 rounded-tl-none backdrop-blur-md'}`}>
+                                        <div className={`max-w-[85%] p-4 rounded-2xl ${m.sender === 'user' ? 'bg-white text-[#00b3c2] rounded-tr-none shadow-xl' : 'bg-white/15 text-white border border-white/20 rounded-tl-none backdrop-blur-md'}`}>
                                             <p className="text-sm font-black uppercase leading-tight tracking-wide italic">{m.text}</p>
                                         </div>
                                     </div>
@@ -365,7 +365,7 @@
                                 {!isTyping && currentQuestion < QUESTIONS.length ? (
                                     <div className="flex flex-col gap-2">
                                         {QUESTIONS[currentQuestion].options.map((opt, i) => (
-                                            <button key={i} onClick={() => handleAnswer(opt)} className="w-full bg-white text-[#00b4e5] p-4 rounded-xl text-left font-black uppercase tracking-tighter text-[13px] shadow-lg active:scale-[0.98] transition-all border-2 border-transparent">
+                                            <button key={i} onClick={() => handleAnswer(opt)} className="w-full bg-white text-[#00b3c2] p-4 rounded-xl text-left font-black uppercase tracking-tighter text-[13px] shadow-lg active:scale-[0.98] transition-all border-2 border-transparent">
                                                 {opt.text}
                                             </button>
                                         ))}
@@ -389,7 +389,7 @@
                     <div className="w-full flex flex-col h-full justify-between z-10 space-y-4">
                         
                         {/* Tabbed Card Replaces Flip Card for Better Stability */}
-                        <div className="flex-1 bg-[#00b4e5] border-[4px] border-white rounded-[2rem] shadow-2xl flex flex-col overflow-hidden relative">
+                        <div className="flex-1 bg-[#00b3c2] border-[4px] border-white rounded-[2rem] shadow-2xl flex flex-col overflow-hidden relative">
                             <div className="absolute inset-0 agave-grid opacity-[0.1] scale-125 pointer-events-none"></div>
                             
                             {/* Card Header */}
@@ -438,7 +438,7 @@
                                                 <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 shadow-inner space-y-3 mx-1">
                                                     {result.recipe.map((step, idx) => (
                                                         <div key={idx} className="flex items-center gap-3 text-left">
-                                                            <div className="w-5 h-5 rounded-full bg-white text-[#00b4e5] text-[10px] font-black flex items-center justify-center flex-shrink-0 shadow-md">{idx + 1}</div>
+                                                            <div className="w-5 h-5 rounded-full bg-white text-[#00b3c2] text-[10px] font-black flex items-center justify-center flex-shrink-0 shadow-md">{idx + 1}</div>
                                                             <p className="text-white text-[10px] font-black uppercase tracking-tight leading-tight">{step}</p>
                                                         </div>
                                                     ))}
@@ -460,14 +460,14 @@
                                     <button 
                                         disabled={isGenerating}
                                         onClick={() => setActiveTab('vibe')} 
-                                        className={`flex-1 py-3 text-[10px] font-black tracking-[0.2em] transition-colors ${activeTab === 'vibe' ? 'bg-white text-[#00b4e5]' : 'text-white/70 hover:text-white'} uppercase`}>
+                                        className={`flex-1 py-3 text-[10px] font-black tracking-[0.2em] transition-colors ${activeTab === 'vibe' ? 'bg-white text-[#00b3c2]' : 'text-white/70 hover:text-white'} uppercase`}>
                                         THE VIBE
                                     </button>
-                                    <div className="w-[1px] bg-white/20"></div>
+                                    <div className="w-[1px] bg-white/30"></div>
                                     <button 
                                         disabled={isGenerating}
                                         onClick={() => setActiveTab('serve')} 
-                                        className={`flex-1 py-3 text-[10px] font-black tracking-[0.2em] transition-colors ${activeTab === 'serve' ? 'bg-white text-[#00b4e5]' : 'text-white/70 hover:text-white'} uppercase`}>
+                                        className={`flex-1 py-3 text-[10px] font-black tracking-[0.2em] transition-colors ${activeTab === 'serve' ? 'bg-white text-[#00b3c2]' : 'text-white/70 hover:text-white'} uppercase`}>
                                         THE SERVE
                                     </button>
                                 </div>
@@ -476,7 +476,7 @@
 
                         {/* Action Buttons - Always visible */}
                         <div className="shrink-0 flex flex-col gap-2 w-full pb-2">
-                            <button className="w-full flex items-center justify-center gap-2 bg-white text-[#00b4e5] p-4 rounded-xl font-black shadow-xl uppercase tracking-tighter text-sm active:scale-95 transition-transform">
+                            <button className="w-full flex items-center justify-center gap-2 bg-white text-[#00b3c2] p-4 rounded-xl font-black shadow-xl uppercase tracking-tighter text-sm active:scale-95 transition-transform">
                                 <Icons.Share2 size={16} /> SHARE MY VIBE
                             </button>
                             <button onClick={() => window.location.reload()} className="w-full flex items-center justify-center gap-2 bg-black/10 backdrop-blur-sm text-white border border-white/20 p-3 rounded-xl font-black uppercase tracking-tighter text-[10px] active:scale-95 transition-transform">
